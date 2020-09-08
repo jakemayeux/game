@@ -14,10 +14,19 @@ namespace Game2 {
 
         private PhysicsObject physicsObject;
 
-        //private Vector2 pos;
-        //private Vector2 vel;
-        //private Vector2 force;
+        private Vector2 pos;
+        private Vector2 vel;
+        private Vector2 force;
         private Texture2D texture;
+
+        private const float ACCEL = .005f;
+        private const float DECCEL = .005f;
+        private const float MAX_WALK_VEL = 0.4f;
+        private const float MAX_GRAVITY_VEL = 0.6f;
+        private const float JUMP_FORCE = 1f;
+        private const float FRICTION = .05f;
+        private const float GRAVITY = .005f;
+        private const int SIZE = 30;
 
 
         private bool[] collisions;
@@ -43,20 +52,60 @@ namespace Game2 {
             }
         }
 
-        public void Update(GamePadState gamePadState, double dt) {
+        public void Update3(GamePadState gamePadState, KeyboardState keyboardState, double dt) {
+
+            force.X = 0;
+            force.Y = 0;
+
+            if (vel.Y < MAX_GRAVITY_VEL) {
+                force.Y += GRAVITY;
+            } 
+
+            if (keyboardState.IsKeyDown(Keys.Right)) {
+                if (vel.X < MAX_WALK_VEL) {
+                    force.X += ACCEL;
+                }
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Left)) {
+                if (vel.X > -MAX_WALK_VEL) {
+                    force.X -= ACCEL;
+                }
+            }
+
+            // stop walking
+            //if (keyboardState.IsKeyUp(Keys.Left) && keyboardState.IsKeyUp(Keys.Right)) {
+            //    if (vel.X > 0) {
+            //        if (vel.X < DECCEL) {
+            //            force.X -= vel.X;
+            //        } else {
+            //            force.X -= DECCEL;
+            //        }
+            //    } else if (vel.X < 0) {
+            //        if (vel.X > DECCEL) {
+            //            force.X -= vel.X;
+            //        } else {
+            //            force.X += DECCEL;
+            //        }
+            //    }
+            //}
+
+            vel += force * (float)dt;
+            pos += vel * (float)dt;
+        }
+
+        public void Update2(GamePadState gamePadState, KeyboardState keyboardState, double dt) {
             var leftStick = gamePadState.ThumbSticks.Left;
 
             force.X = 0;
-            if (vel.Y < MAX_GRAVITY_VEL) {
-                force.Y = GRAVITY;
-            } else {
                 force.Y = 0;
+            if (vel.Y < MAX_GRAVITY_VEL) {
+                force.Y += GRAVITY;
             }
 
-            if (gamePadState.Buttons.A == ButtonState.Pressed) {
+            if (gamePadState.Buttons.A == ButtonState.Pressed || keyboardState.IsKeyDown(Keys.Space)) {
                 if (!isJumpPressed && isGrounded()) {
-                    force.Y = -JUMP_FORCE;
-                    Debug.WriteLine("JUMPING " + dt);
+                    force.Y += -JUMP_FORCE;
                 }
                 isJumpPressed = true;
             } else {
@@ -65,13 +114,13 @@ namespace Game2 {
 
 
             // apply running forces if we are under max velocity
-            if (leftStick.X < 0) {
+            if (leftStick.X < 0 || keyboardState.IsKeyDown(Keys.Left)) {
                 if (vel.X > -MAX_WALK_VEL) {
-                    force.X = -ACCEL;
+                    force.X += -ACCEL;
                 }
-            } else if (leftStick.X > 0) {
+            } else if (leftStick.X > 0 || keyboardState.IsKeyDown(Keys.Right)) {
                 if (vel.X < MAX_WALK_VEL) {
-                    force.X = ACCEL;
+                    force.X += ACCEL;
                 }
             }
 

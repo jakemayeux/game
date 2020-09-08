@@ -46,11 +46,13 @@ namespace Game2
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            KeyboardState keyboardState = Keyboard.GetState();
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
 
             // TODO: Add your update logic here
-
+            
 
             var gamePadState = GamePad.GetState(PlayerIndex.One);
 
@@ -58,7 +60,7 @@ namespace Game2
 
             var dt = gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            player.Update(gamePadState, dt);
+            player.Update(gamePadState, keyboardState, dt);
 
             var collisions = map.Collide(player.getPos());
 
