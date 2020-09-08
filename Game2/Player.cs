@@ -8,9 +8,11 @@ using System.Diagnostics;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 
-namespace Game2 {
+namespace Game2
+{
 
-    class Player : PhysicsObject {
+    class Player : PhysicsObject
+    {
 
         private PhysicsObject physicsObject;
 
@@ -23,21 +25,22 @@ namespace Game2 {
         private const float DECCEL = .005f;
         private const float MAX_WALK_VEL = 0.4f;
         private const float MAX_GRAVITY_VEL = 0.6f;
-        private const float JUMP_FORCE = 1f;
+        private const float JUMP_FORCE = .05f;
         private const float FRICTION = .05f;
         private const float GRAVITY = .005f;
         private const int SIZE = 30;
+        //private const float EPSILON = 0.0001f; //velocity to be considered zero
 
 
         private bool[] collisions;
 
         private Vector2[] trails;
-        private int asdf = 0;
 
         private bool isJumpPressed = false;
 
 
-        public Player(GraphicsDevice graphicsDevice) {
+        public Player(GraphicsDevice graphicsDevice)
+        {
             pos = new Vector2(0, 0);
             vel = new Vector2(0, 0);
             force = new Vector2(0, 0);
@@ -47,28 +50,92 @@ namespace Game2 {
 
             trails = new Vector2[30];
 
-            for (int i = 0; i < 30; i++) {
+            for (int i = 0; i < 30; i++)
+            {
                 trails[i] = new Vector2(0, 0);
             }
         }
 
-        public void Update3(GamePadState gamePadState, KeyboardState keyboardState, double dt) {
+
+        public void Update(GamePadState gamePadState, KeyboardState keyboardState, double dt)
+        {
+            //m = 1 -> [force] = [accel] and force = accel
+            force.X = 0;
+            force.Y = 0;
+
+            //y-component rules taken from jakes update function
+            if (vel.Y < MAX_GRAVITY_VEL)
+            {
+                force.Y += GRAVITY;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Space) && isGrounded()) {
+                force.Y = -JUMP_FORCE;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Right))
+            { //if the right key is down accelerate in +x direction
+                if (vel.X < MAX_WALK_VEL)
+                {
+                    force.X = ACCEL;
+                }
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Left)) //if the left key is down accelerate is -x direction
+            {
+                if (vel.X > -MAX_WALK_VEL)
+                {
+                    force.X = -ACCEL;
+                }
+            }
+
+            //if neither key is held down we want it to stop moving
+            if (keyboardState.IsKeyUp(Keys.Left) && keyboardState.IsKeyUp(Keys.Right))
+            {
+                if (vel.X > DECCEL)
+                { //if the velocity is sufficiently positive, DECCELL in units of velocity here
+                    force.X = -DECCEL;
+                }
+                else if (vel.X < -DECCEL)
+                { //if the velocity is sufficiently negative
+                    force.X = DECCEL;
+                }
+                else 
+                { //velocity is sufficiently close to zero
+                    vel.X = 0.0f;
+                }
+
+            }
+
+
+            //update velocity and position vectors
+            vel += force * (float)dt;
+            pos += vel * (float)dt;
+        }
+
+        public void Update3(GamePadState gamePadState, KeyboardState keyboardState, double dt)
+        {
 
             force.X = 0;
             force.Y = 0;
 
-            if (vel.Y < MAX_GRAVITY_VEL) {
+            if (vel.Y < MAX_GRAVITY_VEL)
+            {
                 force.Y += GRAVITY;
-            } 
+            }
 
-            if (keyboardState.IsKeyDown(Keys.Right)) {
-                if (vel.X < MAX_WALK_VEL) {
+            if (keyboardState.IsKeyDown(Keys.Right))
+            {
+                if (vel.X < MAX_WALK_VEL)
+                {
                     force.X += ACCEL;
                 }
             }
 
-            if (keyboardState.IsKeyDown(Keys.Left)) {
-                if (vel.X > -MAX_WALK_VEL) {
+            if (keyboardState.IsKeyDown(Keys.Left))
+            {
+                if (vel.X > -MAX_WALK_VEL)
+                {
                     force.X -= ACCEL;
                 }
             }
@@ -94,41 +161,55 @@ namespace Game2 {
             pos += vel * (float)dt;
         }
 
-        public void Update2(GamePadState gamePadState, KeyboardState keyboardState, double dt) {
+        public void Update2(GamePadState gamePadState, KeyboardState keyboardState, double dt)
+        {
             var leftStick = gamePadState.ThumbSticks.Left;
 
             force.X = 0;
-                force.Y = 0;
-            if (vel.Y < MAX_GRAVITY_VEL) {
+            force.Y = 0;
+            if (vel.Y < MAX_GRAVITY_VEL)
+            {
                 force.Y += GRAVITY;
             }
 
-            if (gamePadState.Buttons.A == ButtonState.Pressed || keyboardState.IsKeyDown(Keys.Space)) {
-                if (!isJumpPressed && isGrounded()) {
+            if (gamePadState.Buttons.A == ButtonState.Pressed || keyboardState.IsKeyDown(Keys.Space))
+            {
+                if (!isJumpPressed && isGrounded())
+                {
                     force.Y += -JUMP_FORCE;
                 }
                 isJumpPressed = true;
-            } else {
+            }
+            else
+            {
                 isJumpPressed = false;
             }
 
 
             // apply running forces if we are under max velocity
-            if (leftStick.X < 0 || keyboardState.IsKeyDown(Keys.Left)) {
-                if (vel.X > -MAX_WALK_VEL) {
+            if (leftStick.X < 0 || keyboardState.IsKeyDown(Keys.Left))
+            {
+                if (vel.X > -MAX_WALK_VEL)
+                {
                     force.X += -ACCEL;
                 }
-            } else if (leftStick.X > 0 || keyboardState.IsKeyDown(Keys.Right)) {
-                if (vel.X < MAX_WALK_VEL) {
+            }
+            else if (leftStick.X > 0 || keyboardState.IsKeyDown(Keys.Right))
+            {
+                if (vel.X < MAX_WALK_VEL)
+                {
                     force.X += ACCEL;
                 }
             }
 
             var reduction = dt * FRICTION;
             var speedX = Math.Abs(vel.X);
-            if (reduction >= speedX) {
+            if (reduction >= speedX)
+            {
                 vel.X = 0;
-            } else if (speedX > MAX_WALK_VEL || force.X == 0) {
+            }
+            else if (speedX > MAX_WALK_VEL || force.X == 0)
+            {
                 var slowdown = (speedX - ((float)dt * FRICTION)) / speedX;
                 vel *= slowdown;
             }
@@ -175,43 +256,55 @@ namespace Game2 {
             pos += vel;
         }
 
-        public void Collide(bool[] collisions) {
+        public void Collide(bool[] collisions)
+        {
             this.collisions = collisions;
-            if (collisions[0]) {
-                if (vel.Y < 0) {
+            if (collisions[0])
+            {
+                if (vel.Y < 0)
+                {
                     vel.Y = 0;
                 }
                 pos.Y = roundToMultiple(pos.Y, SIZE);
             }
-            if (collisions[1]) {
-                if (vel.Y > 0) {
+            if (collisions[1])
+            {
+                if (vel.Y > 0)
+                {
                     vel.Y = 0;
                 }
                 pos.Y = roundToMultiple(pos.Y, SIZE);
             }
-            if (collisions[2]) {
-                if (vel.X > 0) {
+            if (collisions[2])
+            {
+                if (vel.X > 0)
+                {
                     vel.X = 0;
                 }
                 pos.X = roundToMultiple(pos.X, SIZE);
             }
-            if (collisions[3]) {
-                if (vel.X > 0) {
+            if (collisions[3])
+            {
+                if (vel.X > 0)
+                {
                     vel.X = 0;
                 }
                 pos.X = roundToMultiple(pos.X, SIZE);
             }
         }
 
-        private bool isGrounded() {
+        private bool isGrounded()
+        {
             return collisions[1];
         }
 
-        private float roundToMultiple(float val, float multiple) {
+        private float roundToMultiple(float val, float multiple)
+        {
             return (float)Math.Round(val / multiple) * multiple;
         }
 
-        public void Draw(SpriteBatch spriteBatch) {
+        public void Draw(SpriteBatch spriteBatch)
+        {
             spriteBatch.Draw(texture, new Rectangle((int)pos.X, (int)pos.Y, SIZE, SIZE), Color.White);
 
             //asdf++;
@@ -225,20 +318,9 @@ namespace Game2 {
             //}
         }
 
-        public Vector2 getPos() {
+        public Vector2 getPos()
+        {
             return pos;
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

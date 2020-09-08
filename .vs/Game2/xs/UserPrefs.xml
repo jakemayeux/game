@@ -1,16 +1,15 @@
 ﻿<Properties StartupConfiguration="{2C104882-C330-4D39-AFB4-CCD4DF4C3DD0}|Default">
   <MonoDevelop.Ide.ItemProperties.Game2 PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Game2/Game.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Game2/Player.cs">
     <Files>
       <File FileName="Game2/Game.cs" Line="62" Column="1" />
+      <File FileName="Game2/Player.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="Game2" expanded="True">
-            <Node name="Game2" expanded="True">
-              <Node name="Game.cs" selected="True" />
-            </Node>
+            <Node name="Game2" expanded="True" />
           </Node>
         </State>
       </Pad>
