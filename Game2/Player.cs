@@ -29,7 +29,7 @@ namespace Game2
         private const float FRICTION = .05f;
         private const float GRAVITY = .005f;
         private const int SIZE = 30;
-        //private const float EPSILON = 0.0001f; //velocity to be considered zero
+        private const float EPSILON = DECCEL; //velocity to be considered zero
 
 
         private bool[] collisions;
@@ -92,11 +92,11 @@ namespace Game2
             //if neither key is held down we want it to stop moving
             if (keyboardState.IsKeyUp(Keys.Left) && keyboardState.IsKeyUp(Keys.Right))
             {
-                if (vel.X > DECCEL)
+                if (vel.X > EPSILON)
                 { //if the velocity is sufficiently positive, DECCELL in units of velocity here
                     force.X = -DECCEL;
                 }
-                else if (vel.X < -DECCEL)
+                else if (vel.X < -EPSILON)
                 { //if the velocity is sufficiently negative
                     force.X = DECCEL;
                 }
@@ -108,6 +108,12 @@ namespace Game2
             }
 
 
+            //ensure velocity doesn't overshoot for sufficiently large dt
+            bool overshotVel = vel.X > 0 && vel.X - DECCEL * (float)dt < EPSILON;
+            overshotVel = overshotVel && (vel.X < 0 && vel.X + DECCEL * float(dt) > -EPSILON);
+            if (overshotVel) {
+               vel.X = 0.0.f;
+            }
             //update velocity and position vectors
             vel += force * (float)dt;
             pos += vel * (float)dt;
